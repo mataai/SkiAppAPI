@@ -21,6 +21,8 @@ public class DBService {
     public DBService() {
     }
 
+    
+
     private static Connection connect() {
         try {
             Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/ski?useSSL=false", "user","passw0rd");
@@ -64,6 +66,27 @@ public class DBService {
             while (res.next()) {
                 Exercice tempClasse = new Exercice(res.getString(2), res.getString(3),res.getInt(4));
                 output.add(tempClasse);
+            }
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        closeDB(sql);
+        return output;
+    }
+
+    public static List<Group> getGroupsByLevel(int id) {
+
+        Connection sql = null;
+        List<Group> output = new ArrayList<>();
+        try {
+            sql = connect();
+            Statement req = sql.createStatement();
+            ResultSet res = req.executeQuery("SELECT * FROM `Groups` WHERE LevelID = "+ id +";");
+            while (res.next()) {
+                Group tempGroup = new Group(res.getInt(1),res.getString(3), res.getString(2),res.getString(4));
+                output.add(tempGroup);
             }
 
         } catch (Exception e) {
