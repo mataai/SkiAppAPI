@@ -42,7 +42,6 @@ public class WebService {
     @Path("/levels")
     @Produces(MediaType.APPLICATION_JSON)
     public static String teachers() throws InterruptedException {
-        Thread.sleep(2000);
         return gson.toJson(DBService.getLevels());
     }
 
@@ -50,11 +49,24 @@ public class WebService {
     @Path("/levels/{id}/exercices")
     @Produces(MediaType.APPLICATION_JSON)
     public static String ExercicesByLevel(@PathParam("id") int id) throws InterruptedException {
-        Thread.sleep(2000);
         return gson.toJson(DBService.getExercicesByLevel(id));
     }
 
-  
+    @GET
+    @Path("/levels/{id}/groups")
+    @Produces(MediaType.APPLICATION_JSON)
+    public static String GroupsByLevel(@PathParam("id") int id) throws InterruptedException {
+        return gson.toJson(DBService.getGroupsByLevel(id));
+    }
+
+    @GET
+    @Path("/groups/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public static String Group(@PathParam("id") int id) throws InterruptedException {
+        return gson.toJson(DBService.getGroup(id));
+    }
+
+
     // endregion
 
 }

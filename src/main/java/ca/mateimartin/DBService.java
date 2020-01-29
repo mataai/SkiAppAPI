@@ -96,6 +96,39 @@ public class DBService {
         closeDB(sql);
         return output;
     }
+    
+    public static Group getGroup(int id) {
+
+        Connection sql = null;
+        Group output = null;
+        try {
+            sql = connect();
+            Statement req = sql.createStatement();
+            ResultSet res = req.executeQuery("SELECT * FROM `Groups` WHERE GroupID = "+ id +";");
+            while (res.next()) {
+                Group tempGroup = new Group(res.getInt(1),res.getString(3), res.getString(2),res.getString(4));
+                try {
+                    sql = connect();
+                    Statement req2 = sql.createStatement();
+                    ResultSet res2 = req2.executeQuery("SELECT * FROM VW_Inscription where GroupID = "+ id +";");
+                    while (res2.next()) {
+
+                        tempGroup.Students.add(new Student(res2.getInt(2), res2.getString(3), res2.getString(4)));
+                    }
+        
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+                output = tempGroup;
+            }
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        closeDB(sql);
+        return output;
+    }
 
     
 	public static List<Exercice> getExercicesByLevel(int id) {
