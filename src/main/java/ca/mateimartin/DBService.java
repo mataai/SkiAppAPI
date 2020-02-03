@@ -151,30 +151,6 @@ public class DBService {
         return output;
 	}
 
-    // public static List<Exercice> getClassesbyID(int id) {
-
-    //     Connection sql = null;
-    //     List<Classe> output = new ArrayList<>();
-    //     try {
-    //         sql = connect();
-    //         Statement req = sql.createStatement();
-    //         ResultSet res = req.executeQuery("SELECT * FROM `Class`  WHERE `roomID` = " + id + ";");
-    //         while (res.next()) {
-    //             Classe tempClasse = new Classe(res.getInt(1), res.getTime(2), res.getTime(3), res.getInt(4),
-    //                     res.getInt(5), DBService.getTeacher(res.getInt(6)), DBService.getGroup(res.getInt(7)));
-    //             output.add(tempClasse);
-    //         }
-
-    //     } catch (Exception e) {
-    //         System.out.println(e.getMessage());
-    //     }
-
-    //     closeDB(sql);
-    //     return output;
-
-    // }
-
-
     public static void closeDB(Connection sql) {
         if (sql != null) {
             try {

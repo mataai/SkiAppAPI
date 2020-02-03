@@ -34,9 +34,7 @@ public class WebService {
     @Path("/")
     public static String home() {
         return "supp brooo";
-    }
-
-    
+    }    
 
     @GET
     @Path("/levels")
@@ -57,6 +55,13 @@ public class WebService {
     @Produces(MediaType.APPLICATION_JSON)
     public static String GroupsByLevel(@PathParam("id") int id) throws InterruptedException {
         return gson.toJson(DBService.getGroupsByLevel(id));
+    }
+
+    @GET
+    @Path("/levels/{id}/students")
+    @Produces(MediaType.APPLICATION_JSON)
+    public static String GroupsByLevel(@PathParam("id") int id) throws InterruptedException {
+        return gson.toJson(DBService.getStudentsByLevel(id));
     }
 
     @GET
