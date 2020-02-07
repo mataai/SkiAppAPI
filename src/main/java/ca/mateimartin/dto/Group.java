@@ -1,23 +1,32 @@
 package ca.mateimartin.dto;
 
+
 import java.util.ArrayList;
 
 public class Group {
-    int id;
+    public int id;
     public String Number;
     public String Level;
     public String Time;
+    public String TeacherName;
+    public int day;
     public ArrayList<Student> Students = new ArrayList<>();
 
-    public Group(String Number,String Level, String Time){
-        this.Number = Number;
-        this.Level = Level;
-        this.Time = Time;
-    }
-    public Group(int id ,String Number,String Level, String Time){
+    public Group(){}
+
+    public Group(int id ,String Number,String Level, String Time,int day){
         this.id = id;
         this.Number = Number;
         this.Level = Level;
         this.Time = Time;
+        this.day = day;
+    }
+    public Group(int id ,String Number,String Level, String Time,int day,String teacher){
+        this.id = id;
+        this.Number = Number;
+        this.Level = Level;
+        this.Time = Time;
+        this.day = day;
+        this.TeacherName = teacher;
     }
 }

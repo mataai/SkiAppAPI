@@ -1,18 +1,19 @@
 package ca.mateimartin.dto;
 
 public class Student {
-    int id;
+    public int id;
     public String Name;
     public String Phone;
+    public int Status;
 
-    public Student(String Name,String Phone){
+    public Student(String Name, int Status){
         this.Name = Name;
-        this.Phone = Phone;
+        this.Status = Status;
     }
 
-    public Student(int id, String Name,String Phone){
+    public Student(int id, String Name, int Status){
         this.id = id;
         this.Name = Name;
-        this.Phone = Phone;
+        this.Status = Status;
     }
 }

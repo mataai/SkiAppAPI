@@ -1,29 +1,14 @@
 package ca.mateimartin;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.UUID;
-
 import com.google.gson.Gson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;
-import java.util.*;
-
-import ca.mateimartin.dto.*;
 
 @Path("/")
 public class WebService {
 
     static Gson gson = new Gson();
-    static DBService db = new DBService();;
 
     public WebService() {
 
@@ -60,17 +45,38 @@ public class WebService {
     @GET
     @Path("/levels/{id}/students")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String GroupsByLevel(@PathParam("id") int id) throws InterruptedException {
+    public static String groupStudent(@PathParam("id") int id) throws InterruptedException {
         return gson.toJson(DBService.getStudentsByLevel(id));
     }
 
+
     @GET
     @Path("/groups/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public static String Groups(@PathParam("id") int id) throws InterruptedException {
+        return gson.toJson(DBService.getGroupsByLevel(id));
+    }
+
+    @GET
+    @Path("/group/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public static String Group(@PathParam("id") int id) throws InterruptedException {
         return gson.toJson(DBService.getGroup(id));
     }
 
+    @GET
+    @Path("/upgrade/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public static String getUpgrade(@PathParam("id") int id) throws InterruptedException {
+        return gson.toJson("yo");
+    }
+
+    @GET
+    @Path("/downgrade/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public static String getDowngrade(@PathParam("id") int id) throws InterruptedException {
+        return gson.toJson("YO");
+    }
 
     // endregion
 

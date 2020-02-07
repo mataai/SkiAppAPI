@@ -1,7 +1,7 @@
 package ca.mateimartin.dto;
 
 public class Exercice {
-    int id;
+    public int id;
     public String description;
     public String terrain;
     public int type;
