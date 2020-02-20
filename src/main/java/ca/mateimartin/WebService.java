@@ -31,8 +31,8 @@ public class WebService {
 
     // region GET
     @GET
-    @Path("/")
-    public static String home(@HeaderParam("Token") String token) {
+    @Path("")
+    public static String home(@HeaderParam("UserToken") String token) {
         return "EEEyyyyoooo\n" + token;
     }
 
@@ -158,33 +158,88 @@ public class WebService {
     @Produces(MediaType.APPLICATION_JSON)
     public Response login(LoginRequest s) throws InterruptedException {
 
-        if (s == null) {
+        try{
+            if (s == null) {
+                Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+                Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Invalid Login").build();
+                return res;
+            }
+    
+            Employe emp = DBService.getEmploye(s.code);
+            if (emp == null) {
+                Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+                Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InexistentUser").build();
+                return res;
+            }
+            
+            LoginResponse lr = Service.login(emp);
+    
+            if (lr != null) {
+                Response.ResponseBuilder rBuild = Response.status(Response.Status.ACCEPTED);
+                Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity(lr).build();
+                return res;
+            }
+    
             Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-            Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Invalid Login").build();
+            Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
             return res;
+        }catch(Exception e){
+            System.out.println(e);
+            System.out.println("Error");
         }
-
-        Employe emp = DBService.getEmploye(s.code);
-        if (emp == null) {
-            Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-            Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InexistentUser").build();
-            return res;
-        }
-        emp = DBService.getPerms(emp);
-        UUID token = UUID.randomUUID();
-        LoginResponse lr = new LoginResponse(emp, token);
-
-        boolean sql = DBService.login(emp.id, token);
-        if (sql) {
-            Response.ResponseBuilder rBuild = Response.status(Response.Status.ACCEPTED);
-            Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity(lr).build();
-            return res;
-        }
-
+    
         Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-        Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
+        Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Error").build();
         return res;
         
+        
     }
+
+
+    @POST
+    @Path("/logout")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response logout(@HeaderParam("UserToken") String token, String Token) throws InterruptedException {
+
+        try{
+            if (Token == null && token == null) {
+                Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+                Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidToken").build();
+                return res;
+            }
+            String result;
+            if (token == null){
+                result = Service.logout(UUID.fromString(Token));
+
+            } else {
+                result = Service.logout(UUID.fromString(token));
+            }
+            
+            if(result.equals("Good")){
+                Response.ResponseBuilder rBuild = Response.status(Response.Status.ACCEPTED);
+                Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Disconnected").build();
+                return res;
+            } else if (result.equals("SQLError")){
+                Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+                Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
+                return res;
+            }
+            
+            
+        }catch(Exception e){
+            System.out.println(e);
+            System.out.println("Error");
+        }
+    
+        Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+        Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Error").build();
+        return res;
+        
+        
+    }
+
+    
+
+    
 
 }

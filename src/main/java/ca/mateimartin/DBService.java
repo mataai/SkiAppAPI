@@ -95,7 +95,7 @@ public class DBService {
         return output;
     }
 
-    public static Group getStudent(int id) {
+    public static Group getStudents(int id) {
 
         Connection sql = null;
         Group output = null;
@@ -299,7 +299,7 @@ public class DBService {
         return output;
     }
 
-    public static Employe getPerms(Employe emp){
+    public static Employe getPerms(Employe emp) {
         Connection sql = null;
         try {
             sql = connect();
@@ -319,7 +319,7 @@ public class DBService {
     }
 
     public static Boolean login(int EmployeID, UUID token) {
-        
+
         Connection sql = null;
         try {
             sql = connect();
@@ -327,7 +327,7 @@ public class DBService {
             req.setInt(1, EmployeID);
             req.setString(2, token.toString());
             int res = req.executeUpdate();
-            if (res > 0){
+            if (res > 0) {
                 return true;
             }
         } catch (Exception e) {
@@ -339,15 +339,29 @@ public class DBService {
         return false;
     }
 
+    public static Employe getTokenInfo(UUID token){
+        return null;
+    }
 
-
-    public static String checkToken(UUID token) {
+    public static boolean deleteToken(UUID token) {
 
         if (token == null) {
-            return "NullTokenError";
+            return false;
+        }
+        try (Connection conn = connect();
+             PreparedStatement req = conn.prepareStatement("DELETE FROM `Logins` WHERE `Token` = ?")) {
+
+                req.setString(1, token.toString());
+            int i = req.executeUpdate();
+            if (i > 0){
+                return true;
+            }
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
 
-        return "";
+        return false ;
     }
 
     public static void closeDB(Connection sql) {
@@ -355,6 +369,7 @@ public class DBService {
             try {
                 sql.close();
             } catch (Exception e) {
+                System.out.println(e.getMessage());
             }
         }
     }
