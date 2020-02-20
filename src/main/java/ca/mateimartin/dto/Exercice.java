@@ -11,4 +11,10 @@ public class Exercice {
         this.terrain = terrain;
         this.type = type;
     }
+    public Exercice(int id ,String description,String terrain, int type){
+        this.id = id;
+        this.description = description;
+        this.terrain = terrain;
+        this.type = type;
+    }
 }

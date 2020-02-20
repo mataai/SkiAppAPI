@@ -7,9 +7,10 @@ import java.io.InputStreamReader;
 import java.util.UUID;
 
 import com.google.gson.Gson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import ca.mateimartin.dto.Employe;
+import ca.mateimartin.dto.LoginRequest;
+import ca.mateimartin.dto.LoginResponse;
 import ca.mateimartin.dto.StatusDTO;
 
 import javax.ws.rs.*;
@@ -31,8 +32,8 @@ public class WebService {
     // region GET
     @GET
     @Path("/")
-    public static String home() {
-        return "supp brooo";
+    public static String home(@HeaderParam("Token") String token) {
+        return "EEEyyyyoooo\n" + token;
     }
 
     @GET
@@ -52,42 +53,48 @@ public class WebService {
     @GET
     @Path("/levels/{id}/groups")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String GroupsByLevel(@PathParam("id") int id) throws InterruptedException {
+    public static String GroupsByLevel(@HeaderParam("UserToken") String token, @PathParam("id") int id)
+            throws InterruptedException {
         return gson.toJson(DBService.getGroupsByLevel(id));
     }
 
     @GET
     @Path("/levels/{id}/students")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String groupStudent(@PathParam("id") int id) throws InterruptedException {
+    public static String groupStudent(@HeaderParam("UserToken") String token, @PathParam("id") int id)
+            throws InterruptedException {
         return gson.toJson(DBService.getStudentsByLevel(id));
     }
 
     @GET
     @Path("/groups/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String Groups(@PathParam("id") int id) throws InterruptedException {
+    public static String Groups(@HeaderParam("UserToken") String token, @PathParam("id") int id)
+            throws InterruptedException {
         return gson.toJson(DBService.getGroupsByLevel(id));
     }
 
     @GET
     @Path("/group/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String Group(@PathParam("id") int id) throws InterruptedException {
+    public static String Group(@HeaderParam("UserToken") String token, @PathParam("id") int id)
+            throws InterruptedException {
         return gson.toJson(DBService.getGroup(id));
     }
 
     @GET
     @Path("/upgrade/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String getUpgrade(@PathParam("id") int id) throws InterruptedException {
+    public static String getUpgrade(@HeaderParam("UserToken") String token, @PathParam("id") int id)
+            throws InterruptedException {
         return gson.toJson("yo");
     }
 
     @GET
     @Path("/downgrade/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String getDowngrade(@PathParam("id") int id) throws InterruptedException {
+    public static String getDowngrade(@HeaderParam("UserToken") String token, @PathParam("id") int id)
+            throws InterruptedException {
         return gson.toJson("YO");
     }
 
@@ -103,7 +110,7 @@ public class WebService {
     @POST
     @Path("/status/")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createClasse(StatusDTO s) throws InterruptedException {
+    public Response updateStatusOld(@HeaderParam("UserToken") String token, StatusDTO s) throws InterruptedException {
         Thread.sleep(2000);
         if (s == null) {
             Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
@@ -112,15 +119,71 @@ public class WebService {
         }
         boolean lr = DBService.updateStatus(s);
 
-
-        if(lr){
+        if (lr) {
             Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
             Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
             return res;
         }
 
-        
-        return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity(lr).build();
+        return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity(lr)
+                .build();
+
+    }
+
+    @POST
+    @Path("/update/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateStatus(@HeaderParam("UserToken") String token, StatusDTO s) throws InterruptedException {
+        Thread.sleep(2000);
+        if (s == null) {
+            Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+            Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidObject").build();
+            return res;
+        }
+        boolean lr = DBService.updateStatus(s);
+
+        if (lr) {
+            Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+            Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
+            return res;
+        }
+
+        return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity(lr)
+                .build();
+
+    }
+
+    @POST
+    @Path("/login")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response login(LoginRequest s) throws InterruptedException {
+
+        if (s == null) {
+            Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+            Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Invalid Login").build();
+            return res;
+        }
+
+        Employe emp = DBService.getEmploye(s.code);
+        if (emp == null) {
+            Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+            Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InexistentUser").build();
+            return res;
+        }
+        emp = DBService.getPerms(emp);
+        UUID token = UUID.randomUUID();
+        LoginResponse lr = new LoginResponse(emp, token);
+
+        boolean sql = DBService.login(emp.id, token);
+        if (sql) {
+            Response.ResponseBuilder rBuild = Response.status(Response.Status.ACCEPTED);
+            Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity(lr).build();
+            return res;
+        }
+
+        Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+        Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
+        return res;
         
     }
 

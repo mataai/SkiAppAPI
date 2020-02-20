@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.google.gson.JsonElement;
 
@@ -78,7 +79,8 @@ public class DBService {
         try {
             sql = connect();
             Statement req = sql.createStatement();
-            ResultSet res = req.executeQuery("SELECT * FROM `Groups` WHERE LevelID = " + id + ";");
+            ResultSet res = req
+                    .executeQuery("SELECT * FROM `Groups` WHERE LevelID = " + id + " ORDER BY day desc, Time;");
             while (res.next()) {
                 Group tempGroup = new Group(res.getInt(1), res.getString(3), res.getString(2), res.getString(4),
                         res.getInt(5), res.getString(6));
@@ -170,7 +172,7 @@ public class DBService {
             Statement req = sql.createStatement();
             ResultSet res = req.executeQuery("SELECT * FROM `Exercices` WHERE `LevelID` = " + id + ";");
             while (res.next()) {
-                Exercice tempClasse = new Exercice(res.getString(2), res.getString(3), res.getInt(4));
+                Exercice tempClasse = new Exercice(res.getInt(1), res.getString(2), res.getString(3), res.getInt(4));
                 output.add(tempClasse);
             }
 
@@ -210,10 +212,27 @@ public class DBService {
         Connection sql = null;
         PreparedStatement stmt = null;
         boolean output = false;
+        int[] old = new int[3]; // GroupID StudentID Status
         try {
 
             sql = connect();
+            Statement req = sql.createStatement();
+            ResultSet res = req.executeQuery("SELECT * FROM `StudentGroup` WHERE StudentID = " + s.studentID + ";");
+            while (res.next()) {
+                old[0] = res.getInt(1);
+                old[1] = res.getInt(2);
+                old[2] = res.getInt(3);
 
+            }
+            System.out.println("INSERT INTO `StudentGroupHistory` (GroupID,StudentID,Status) VALUES (" + old[0] + ","
+                    + old[1] + "," + old[2] + ")");
+
+            stmt = sql.prepareStatement("INSERT INTO `StudentGroupHistory` (GroupID,StudentID,Status) VALUES (" + old[0]
+                    + "," + old[1] + "," + old[2] + ")");
+
+            stmt.executeUpdate();
+
+            System.out.println("2");
             stmt = sql.prepareStatement("UPDATE `StudentGroup` SET `Status`= ? WHERE `StudentID` = ?");
 
             stmt.setInt(1, s.status);
@@ -237,18 +256,98 @@ public class DBService {
             sql = connect();
             Statement req = sql.createStatement();
             ResultSet res;
-            if (input.length == 2){
-                 res = req.executeQuery("SELECT * FROM `VW_Inscription` WHERE `Name` LIKE '"+input[0]+"%' OR `FirstName` LIKE '"+input[1]+"%' OR `Name` LIKE '"+input[1]+"%' OR `FirstName` LIKE '"+input[0]+"%' ");
-            }
-            else{
-                res = req.executeQuery("SELECT * FROM `VW_Inscription` WHERE `Name` LIKE '"+input[0]+"%' OR `FirstName` LIKE '"+input[0]+"%'");
+            if (input.length == 2) {
+                res = req.executeQuery("SELECT * FROM `VW_Inscription` WHERE `Name` LIKE '" + input[0]
+                        + "%' OR `FirstName` LIKE '" + input[1] + "%' OR `Name` LIKE '" + input[1]
+                        + "%' OR `FirstName` LIKE '" + input[0] + "%' ");
+            } else {
+                res = req.executeQuery("SELECT * FROM `VW_Inscription` WHERE `Name` LIKE '" + input[0]
+                        + "%' OR `FirstName` LIKE '" + input[0] + "%'");
             }
             req.toString();
             while (res.next()) {
-                out.add(new SearchResponse(new Student(res.getInt(1),res.getString(2)+" "+res.getString(3),res.getInt(4)),getGroup(res.getInt(5))));
-            }} catch (Exception e) {System.out.println(e.getMessage());}
+                out.add(new SearchResponse(
+                        new Student(res.getInt(1), res.getString(2) + " " + res.getString(3), res.getInt(4)),
+                        getGroup(res.getInt(5))));
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
         closeDB(sql);
         return out;
+    }
+
+    public static Employe getEmploye(int id) {
+        Employe output = null;
+        Connection sql = null;
+        try {
+            sql = connect();
+            PreparedStatement req = sql.prepareStatement("SELECT * FROM `Employes` WHERE EmployeID = ?;");
+            req.setInt(1, id);
+            ResultSet res = req.executeQuery();
+            while (res.next()) {
+                output = new Employe(res.getInt(1), res.getString(2) + " " + res.getString(3));
+            }
+            res.close();
+        } catch (Exception e) {
+            closeDB(sql);
+            System.out.println(e.getMessage());
+        }
+
+        closeDB(sql);
+
+        return output;
+    }
+
+    public static Employe getPerms(Employe emp){
+        Connection sql = null;
+        try {
+            sql = connect();
+            PreparedStatement req = sql.prepareStatement("SELECT * FROM `DepartementStaff` WHERE EmployeID = ?;");
+            req.setInt(1, emp.id);
+            ResultSet res = req.executeQuery();
+            while (res.next()) {
+                emp.permissions.put(res.getInt(3), res.getInt(2));
+            }
+            res.close();
+        } catch (Exception e) {
+            closeDB(sql);
+            System.out.println(e.getMessage());
+            return null;
+        }
+        return emp;
+    }
+
+    public static Boolean login(int EmployeID, UUID token) {
+        
+        Connection sql = null;
+        try {
+            sql = connect();
+            PreparedStatement req = sql.prepareStatement("INSERT INTO `Logins`(`EmployeID`, `Token`) VALUES (?,?)");
+            req.setInt(1, EmployeID);
+            req.setString(2, token.toString());
+            int res = req.executeUpdate();
+            if (res > 0){
+                return true;
+            }
+        } catch (Exception e) {
+            closeDB(sql);
+            System.out.println(e.getMessage());
+        }
+
+        closeDB(sql);
+        return false;
+    }
+
+
+
+    public static String checkToken(UUID token) {
+
+        if (token == null) {
+            return "NullTokenError";
+        }
+
+        return "";
     }
 
     public static void closeDB(Connection sql) {
