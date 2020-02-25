@@ -14,6 +14,11 @@ public class Group {
 
     public Group(){}
 
+    public Group(int id, String number){
+        this.id = id;
+        this.Number = number;
+    }
+
     public Group(int id ,String Number,String Level, String Time,int day){
         this.id = id;
         this.Number = Number;
@@ -28,5 +33,15 @@ public class Group {
         this.Time = Time;
         this.day = day;
         this.TeacherName = teacher;
+    }
+
+    public Group id(int id){
+        this.id = id;
+        return this;
+    }
+
+    public Group number(String number){
+        this.Number = number;
+        return this;
     }
 }

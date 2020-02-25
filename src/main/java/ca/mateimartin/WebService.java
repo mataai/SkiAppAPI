@@ -1,24 +1,15 @@
 package ca.mateimartin;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.util.List;
 import java.util.UUID;
 
 import com.google.gson.Gson;
 
-import ca.mateimartin.dto.Employe;
-import ca.mateimartin.dto.LoginRequest;
-import ca.mateimartin.dto.LoginResponse;
-import ca.mateimartin.dto.StatusDTO;
+import ca.mateimartin.dto.*;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
-import java.util.*;
 
 @Path("/")
 public class WebService {
@@ -26,66 +17,98 @@ public class WebService {
     static Gson gson = new Gson();
 
     public WebService() {
-
     }
 
     // region GET
     @GET
     @Path("")
-    public static String home(@HeaderParam("UserToken") String token) {
+    public static String home(@HeaderParam("UserToken") final String token) {
         return "EEEyyyyoooo\n" + token;
     }
 
     @GET
     @Path("/levels")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String teachers() throws InterruptedException {
+    public static String getLevels() throws InterruptedException {
         return gson.toJson(DBService.getLevels());
     }
 
     @GET
     @Path("/levels/{id}/exercices")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String ExercicesByLevel(@PathParam("id") int id) throws InterruptedException {
+    public static String ExercicesByLevel(@PathParam("id") final int id) throws InterruptedException {
         return gson.toJson(DBService.getExercicesByLevel(id));
-    }
-
-    @GET
-    @Path("/levels/{id}/groups")
-    @Produces(MediaType.APPLICATION_JSON)
-    public static String GroupsByLevel(@HeaderParam("UserToken") String token, @PathParam("id") int id)
-            throws InterruptedException {
-        return gson.toJson(DBService.getGroupsByLevel(id));
-    }
-
-    @GET
-    @Path("/levels/{id}/students")
-    @Produces(MediaType.APPLICATION_JSON)
-    public static String groupStudent(@HeaderParam("UserToken") String token, @PathParam("id") int id)
-            throws InterruptedException {
-        return gson.toJson(DBService.getStudentsByLevel(id));
     }
 
     @GET
     @Path("/groups/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String Groups(@HeaderParam("UserToken") String token, @PathParam("id") int id)
+    public static Response Groups(@HeaderParam("UserToken") final String token, @PathParam("id") final int id)
             throws InterruptedException {
-        return gson.toJson(DBService.getGroupsByLevel(id));
+        return GroupsByLevel(token, id);
     }
+
+    @GET
+    @Path("/levels/{id}/groups")
+    @Produces(MediaType.APPLICATION_JSON)
+    public static Response GroupsByLevel(@HeaderParam("UserToken") final String token, @PathParam("id") final int id)
+            throws InterruptedException {
+        if (token == null || token == "" || token.length() != 36) {
+            final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8").entity("InvalidToken").build();
+            return res;
+        }
+
+        List<Group> output = Service.getGroupsByLevel(id, UUID.fromString(token));
+
+        if (output.size() < 1) {
+            final Response res = Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8").entity(output).build();
+            return res;
+        }
+
+        if (output.get(1).id == -1) {
+            final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8").entity(output.get(1)).build();
+            return res;
+        }
+        return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8")
+                .entity(output).build();
+    }
+
+    // @GET
+    // @Path("/levels/{id}/students")
+    // @Produces(MediaType.APPLICATION_JSON)
+    // public static String groupStudent(@HeaderParam("UserToken") final String
+    // token, @PathParam("id") final int id)
+    // throws InterruptedException {
+    // return gson.toJson(DBService.getStudentsByLevel(id));
+    // }
 
     @GET
     @Path("/group/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String Group(@HeaderParam("UserToken") String token, @PathParam("id") int id)
+    public static Response Group(@HeaderParam("UserToken") final String token, @PathParam("id") final int id)
             throws InterruptedException {
-        return gson.toJson(DBService.getGroup(id));
+        if (token == null || token == "" || token.length() != 36) {
+            final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8").entity("InvalidToken").build();
+            return res;
+        }
+        Group out = Service.getGroup(id, UUID.fromString(token));
+        if (out.id == -1) {
+            final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8").entity(out.Number).build();
+            return res;
+        }
+        return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity(out)
+                .build();
     }
 
     @GET
     @Path("/upgrade/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String getUpgrade(@HeaderParam("UserToken") String token, @PathParam("id") int id)
+    public static String getUpgrade(@HeaderParam("UserToken") final String token, @PathParam("id") final int id)
             throws InterruptedException {
         return gson.toJson("yo");
     }
@@ -93,7 +116,7 @@ public class WebService {
     @GET
     @Path("/downgrade/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String getDowngrade(@HeaderParam("UserToken") String token, @PathParam("id") int id)
+    public static String getDowngrade(@HeaderParam("UserToken") final String token, @PathParam("id") final int id)
             throws InterruptedException {
         return gson.toJson("YO");
     }
@@ -101,7 +124,7 @@ public class WebService {
     @GET
     @Path("/search/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String search(@PathParam("id") String id) throws InterruptedException {
+    public static String search(@PathParam("id") final String id) throws InterruptedException {
         return gson.toJson(DBService.search(id));
     }
 
@@ -110,18 +133,20 @@ public class WebService {
     @POST
     @Path("/status/")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateStatusOld(@HeaderParam("UserToken") String token, StatusDTO s) throws InterruptedException {
+    public Response updateStatusOld(@HeaderParam("UserToken") final String token, final StatusDTO s)
+            throws InterruptedException {
         Thread.sleep(2000);
         if (s == null) {
-            Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-            Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidObject").build();
+            final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidObject")
+                    .build();
             return res;
         }
-        boolean lr = DBService.updateStatus(s);
+        final boolean lr = DBService.updateStatus(s);
 
         if (lr) {
-            Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-            Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
+            final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
             return res;
         }
 
@@ -133,18 +158,20 @@ public class WebService {
     @POST
     @Path("/update/")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateStatus(@HeaderParam("UserToken") String token, StatusDTO s) throws InterruptedException {
+    public Response updateStatus(@HeaderParam("UserToken") final String token, final StatusDTO s)
+            throws InterruptedException {
         Thread.sleep(2000);
         if (s == null) {
-            Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-            Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidObject").build();
+            final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidObject")
+                    .build();
             return res;
         }
-        boolean lr = DBService.updateStatus(s);
+        final boolean lr = DBService.updateStatus(s);
 
         if (lr) {
-            Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-            Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
+            final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
             return res;
         }
 
@@ -156,90 +183,88 @@ public class WebService {
     @POST
     @Path("/login")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response login(LoginRequest s) throws InterruptedException {
+    public Response login(final LoginRequest s) throws InterruptedException {
 
-        try{
+        try {
             if (s == null) {
-                Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-                Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Invalid Login").build();
+                final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+                final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Invalid Login")
+                        .build();
                 return res;
             }
-    
-            Employe emp = DBService.getEmploye(s.code);
+
+            final Employe emp = DBService.getEmploye(s.code);
             if (emp == null) {
-                Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-                Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InexistentUser").build();
+                final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+                final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InexistentUser")
+                        .build();
                 return res;
             }
-            
-            LoginResponse lr = Service.login(emp);
-    
+
+            final LoginResponse lr = Service.login(emp);
+
             if (lr != null) {
-                Response.ResponseBuilder rBuild = Response.status(Response.Status.ACCEPTED);
-                Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity(lr).build();
+                final Response.ResponseBuilder rBuild = Response.status(Response.Status.ACCEPTED);
+                final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity(lr).build();
                 return res;
             }
-    
-            Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-            Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
+
+            final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
             return res;
-        }catch(Exception e){
+        } catch (final Exception e) {
             System.out.println(e);
             System.out.println("Error");
         }
-    
-        Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-        Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Error").build();
-        return res;
-        
-        
-    }
 
+        final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+        final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Error").build();
+        return res;
+
+    }
 
     @POST
     @Path("/logout")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response logout(@HeaderParam("UserToken") String token, String Token) throws InterruptedException {
+    public Response logout(@HeaderParam("UserToken") final String token, final String Token)
+            throws InterruptedException {
 
-        try{
-            if (Token == null && token == null) {
-                Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-                Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidToken").build();
+        try {
+            if (Token == null && token == null || Token == "" && token == "") {
+                final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+                final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidToken")
+                        .build();
                 return res;
             }
             String result;
-            if (token == null){
+            if (token == null) {
                 result = Service.logout(UUID.fromString(Token));
 
             } else {
                 result = Service.logout(UUID.fromString(token));
             }
-            
-            if(result.equals("Good")){
-                Response.ResponseBuilder rBuild = Response.status(Response.Status.ACCEPTED);
-                Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Disconnected").build();
+
+            if (result.equals("Good")) {
+                final Response.ResponseBuilder rBuild = Response.status(Response.Status.ACCEPTED);
+                final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Disconnected")
+                        .build();
                 return res;
-            } else if (result.equals("SQLError")){
-                Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-                Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
+            } else if (result.equals("SQLError")) {
+                final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+                final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError")
+                        .build();
                 return res;
             }
-            
-            
-        }catch(Exception e){
+
+        } catch (final Exception e) {
             System.out.println(e);
             System.out.println("Error");
         }
-    
-        Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-        Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Error").build();
+
+        final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+        final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Error").build();
         return res;
-        
-        
+
     }
-
-    
-
-    
 
 }

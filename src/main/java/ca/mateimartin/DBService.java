@@ -72,15 +72,43 @@ public class DBService {
         return output;
     }
 
-    public static List<Group> getGroupsByLevel(int id) {
+    public static List<Group> getGroupsByLevel(int id, int empID) {
 
         Connection sql = null;
         List<Group> output = new ArrayList<>();
         try {
             sql = connect();
-            Statement req = sql.createStatement();
-            ResultSet res = req
-                    .executeQuery("SELECT * FROM `Groups` WHERE LevelID = " + id + " ORDER BY day desc, Time;");
+            PreparedStatement req = sql.prepareStatement("SELECT * FROM `VW_Permissions` WHERE LevelID = ? AND EmployeID = ?");
+            req.setInt(1, id);
+            req.setInt(2, empID);
+            ResultSet res = req.executeQuery();
+            while (res.next()) {
+                System.out.println(res.getInt(1) + " " + res.getInt(2) + " " + res.getInt(3));
+                if (res.getInt(2) <= 10){
+                    Group tempGroup = new Group(res.getInt(3), res.getString(5), res.getString(4), res.getString(6),
+                            res.getInt(7), res.getString(8));
+                    output.add(tempGroup);
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        closeDB(sql);
+        return output;
+    }
+
+    public static List<Group> getGroupsByLevelOG(int id) {
+
+        Connection sql = null;
+        List<Group> output = new ArrayList<>();
+        try {
+            sql = connect();
+            PreparedStatement req = sql
+                    .prepareStatement("SELECT * FROM `Groups` WHERE LevelID = ? ORDER BY day desc, Time;");
+            req.setInt(1, id);
+            ResultSet res = req.executeQuery();
             while (res.next()) {
                 Group tempGroup = new Group(res.getInt(1), res.getString(3), res.getString(2), res.getString(4),
                         res.getInt(5), res.getString(6));
@@ -101,15 +129,17 @@ public class DBService {
         Group output = null;
         try {
             sql = connect();
-            Statement req = sql.createStatement();
-            ResultSet res = req.executeQuery("SELECT * FROM `Groups` WHERE GroupID = " + id + ";");
+            PreparedStatement req = sql.prepareStatement("SELECT * FROM `Groups` WHERE GroupID = ?");
+            req.setInt(1, id);
+            ResultSet res = req.executeQuery();
             while (res.next()) {
                 Group tempGroup = new Group(res.getInt(1), res.getString(3), res.getString(2), res.getString(4),
                         res.getInt(5), res.getString(6));
                 try {
                     sql = connect();
-                    Statement req2 = sql.createStatement();
-                    ResultSet res2 = req2.executeQuery("SELECT * FROM VW_Inscription where GroupID = " + id + ";");
+                    PreparedStatement req2 = sql.prepareStatement("SELECT * FROM VW_Inscription where GroupID = ?");
+                    req.setInt(1, id);
+                    ResultSet res2 = req2.executeQuery();
                     while (res2.next()) {
 
                         tempGroup.Students.add(new Student(res2.getInt(2), res2.getString(3) + " " + res2.getString(4),
@@ -136,8 +166,9 @@ public class DBService {
         Group output = null;
         try {
             sql = connect();
-            Statement req = sql.createStatement();
-            ResultSet res = req.executeQuery("SELECT * FROM `Groups` WHERE GroupID = " + id + ";");
+            PreparedStatement req = sql.prepareStatement("SELECT * FROM `Groups` WHERE GroupID = ?");
+            req.setInt(1, id);
+            ResultSet res = req.executeQuery();
             while (res.next()) {
                 Group tempGroup = new Group(res.getInt(1), res.getString(3), res.getString(2), res.getString(4),
                         res.getInt(5), res.getString(6));
@@ -169,8 +200,9 @@ public class DBService {
         List<Exercice> output = new ArrayList<>();
         try {
             sql = connect();
-            Statement req = sql.createStatement();
-            ResultSet res = req.executeQuery("SELECT * FROM `Exercices` WHERE `LevelID` = " + id + ";");
+            PreparedStatement req = sql.prepareStatement("SELECT * FROM `Exercices` WHERE `LevelID` = ?");
+            req.setInt(1, id);
+            ResultSet res = req.executeQuery();
             while (res.next()) {
                 Exercice tempClasse = new Exercice(res.getInt(1), res.getString(2), res.getString(3), res.getInt(4));
                 output.add(tempClasse);
@@ -184,17 +216,14 @@ public class DBService {
         return output;
     }
 
-    public static JsonElement getStudentsByLevel(int id) {
-        return null;
-    }
-
     public static List<Group> getDowngrade(int studentID) {
         Connection sql = null;
         List<Group> output = new ArrayList<>();
         try {
             sql = connect();
-            Statement req = sql.createStatement();
-            ResultSet res = req.executeQuery("SELECT * FROM `Groups` WHERE GroupID = " + studentID + ";");
+            PreparedStatement req = sql.prepareStatement("SELECT * FROM `Groups` WHERE GroupID = ?");
+            req.setInt(1, studentID);
+            ResultSet res = req.executeQuery();
             while (res.next()) {
                 Group tempClasse = new Group(res.getInt(1), res.getString(3), res.getString(2), res.getString(4),
                         res.getInt(5), res.getString(6));
@@ -216,8 +245,9 @@ public class DBService {
         try {
 
             sql = connect();
-            Statement req = sql.createStatement();
-            ResultSet res = req.executeQuery("SELECT * FROM `StudentGroup` WHERE StudentID = " + s.studentID + ";");
+            PreparedStatement req = sql.prepareStatement("SELECT * FROM `StudentGroup` WHERE StudentID = ?");
+            req.setInt(1, s.studentID);
+            ResultSet res = req.executeQuery();
             while (res.next()) {
                 old[0] = res.getInt(1);
                 old[1] = res.getInt(2);
@@ -254,17 +284,21 @@ public class DBService {
         Connection sql = null;
         try {
             sql = connect();
-            Statement req = sql.createStatement();
-            ResultSet res;
+            PreparedStatement req;
             if (input.length == 2) {
-                res = req.executeQuery("SELECT * FROM `VW_Inscription` WHERE `Name` LIKE '" + input[0]
-                        + "%' OR `FirstName` LIKE '" + input[1] + "%' OR `Name` LIKE '" + input[1]
-                        + "%' OR `FirstName` LIKE '" + input[0] + "%' ");
+                req = sql.prepareStatement(
+                        "SELECT * FROM `VW_Inscription` WHERE `Name` LIKE  OR `FirstName` LIKE ? OR `Name` LIKE ? OR `FirstName` LIKE ? ");
+                req.setString(1, input[0]+"%");
+                req.setString(4, input[0]+"%");
+                req.setString(2, input[1]+"%");
+                req.setString(3, input[1]+"%");
             } else {
-                res = req.executeQuery("SELECT * FROM `VW_Inscription` WHERE `Name` LIKE '" + input[0]
-                        + "%' OR `FirstName` LIKE '" + input[0] + "%'");
+                req = sql.prepareStatement(
+                        "SELECT * FROM `VW_Inscription` WHERE `Name` LIKE ? OR `FirstName` LIKE ?");
+                req.setString(1, input[0]+"%");
+                req.setString(2, input[0]+"%");
             }
-            req.toString();
+            ResultSet res = req.executeQuery();
             while (res.next()) {
                 out.add(new SearchResponse(
                         new Student(res.getInt(1), res.getString(2) + " " + res.getString(3), res.getInt(4)),
@@ -299,6 +333,28 @@ public class DBService {
         return output;
     }
 
+    public static int getPerm(int empID, int groupID) {
+        Integer out = 1000;
+        Connection sql = null;
+        try {
+            sql = connect();
+            PreparedStatement req = sql
+                    .prepareStatement("SELECT * FROM `VW_Permissions` WHERE `GroupID` = ? AND `EmployeID` = ?");
+            req.setInt(1, groupID);
+            req.setInt(2, empID);
+            ResultSet res = req.executeQuery();
+            while (res.next()) {
+                out = res.getInt(1);
+            }
+            res.close();
+        } catch (Exception e) {
+            closeDB(sql);
+            System.out.println(e.getMessage());
+            return 1000;
+        }
+        return out;
+    }
+
     public static Employe getPerms(Employe emp) {
         Connection sql = null;
         try {
@@ -316,6 +372,27 @@ public class DBService {
             return null;
         }
         return emp;
+    }
+
+    public static int getUserByToken(UUID token) {
+        Integer out = 0;
+        Connection sql = null;
+        try {
+            sql = connect();
+            PreparedStatement req = sql.prepareStatement("SELECT * FROM `Logins` WHERE `Token` = ?");
+            req.setString(1, token.toString());
+            ResultSet res = req.executeQuery();
+            while (res.next()) {
+
+                out = res.getInt(1);
+            }
+        } catch (Exception e) {
+            closeDB(sql);
+            System.out.println(e.getMessage());
+        }
+
+        closeDB(sql);
+        return out;
     }
 
     public static Boolean login(int EmployeID, UUID token) {
@@ -339,21 +416,17 @@ public class DBService {
         return false;
     }
 
-    public static Employe getTokenInfo(UUID token){
-        return null;
-    }
-
     public static boolean deleteToken(UUID token) {
 
         if (token == null) {
             return false;
         }
         try (Connection conn = connect();
-             PreparedStatement req = conn.prepareStatement("DELETE FROM `Logins` WHERE `Token` = ?")) {
+                PreparedStatement req = conn.prepareStatement("DELETE FROM `Logins` WHERE `Token` = ?")) {
 
-                req.setString(1, token.toString());
+            req.setString(1, token.toString());
             int i = req.executeUpdate();
-            if (i > 0){
+            if (i > 0) {
                 return true;
             }
 
@@ -361,7 +434,7 @@ public class DBService {
             System.out.println(e.getMessage());
         }
 
-        return false ;
+        return false;
     }
 
     public static void closeDB(Connection sql) {
