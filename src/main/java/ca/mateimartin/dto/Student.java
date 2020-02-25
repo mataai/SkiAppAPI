@@ -3,11 +3,8 @@ package ca.mateimartin.dto;
 public class Student {
     public int id;
     public String Name;
-    public String Phone;
     public int Status;
-
-
-    public static String[] progression = new String[]{"normal", "fini", "retard", "tresretard"};
+    public String Special;
 
     public Student(String Name, int Status){
         this.Name = Name;
