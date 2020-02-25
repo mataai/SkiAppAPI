@@ -78,13 +78,13 @@ public class DBService {
         List<Group> output = new ArrayList<>();
         try {
             sql = connect();
-            PreparedStatement req = sql.prepareStatement("SELECT * FROM `VW_Permissions` WHERE LevelID = ? AND EmployeID = ?");
+            PreparedStatement req = sql
+                    .prepareStatement("SELECT * FROM `VW_Permissions` WHERE LevelID = ? AND EmployeID = ?");
             req.setInt(1, id);
             req.setInt(2, empID);
             ResultSet res = req.executeQuery();
             while (res.next()) {
-                System.out.println(res.getInt(1) + " " + res.getInt(2) + " " + res.getInt(3));
-                if (res.getInt(2) <= 10){
+                if (res.getInt(2) <= 10) {
                     Group tempGroup = new Group(res.getInt(3), res.getString(5), res.getString(4), res.getString(6),
                             res.getInt(7), res.getString(8));
                     output.add(tempGroup);
@@ -254,15 +254,12 @@ public class DBService {
                 old[2] = res.getInt(3);
 
             }
-            System.out.println("INSERT INTO `StudentGroupHistory` (GroupID,StudentID,Status) VALUES (" + old[0] + ","
-                    + old[1] + "," + old[2] + ")");
 
             stmt = sql.prepareStatement("INSERT INTO `StudentGroupHistory` (GroupID,StudentID,Status) VALUES (" + old[0]
                     + "," + old[1] + "," + old[2] + ")");
 
             stmt.executeUpdate();
 
-            System.out.println("2");
             stmt = sql.prepareStatement("UPDATE `StudentGroup` SET `Status`= ? WHERE `StudentID` = ?");
 
             stmt.setInt(1, s.status);
@@ -288,15 +285,14 @@ public class DBService {
             if (input.length == 2) {
                 req = sql.prepareStatement(
                         "SELECT * FROM `VW_Inscription` WHERE `Name` LIKE  OR `FirstName` LIKE ? OR `Name` LIKE ? OR `FirstName` LIKE ? ");
-                req.setString(1, input[0]+"%");
-                req.setString(4, input[0]+"%");
-                req.setString(2, input[1]+"%");
-                req.setString(3, input[1]+"%");
+                req.setString(1, input[0] + "%");
+                req.setString(4, input[0] + "%");
+                req.setString(2, input[1] + "%");
+                req.setString(3, input[1] + "%");
             } else {
-                req = sql.prepareStatement(
-                        "SELECT * FROM `VW_Inscription` WHERE `Name` LIKE ? OR `FirstName` LIKE ?");
-                req.setString(1, input[0]+"%");
-                req.setString(2, input[0]+"%");
+                req = sql.prepareStatement("SELECT * FROM `VW_Inscription` WHERE `Name` LIKE ? OR `FirstName` LIKE ?");
+                req.setString(1, input[0] + "%");
+                req.setString(2, input[0] + "%");
             }
             ResultSet res = req.executeQuery();
             while (res.next()) {
