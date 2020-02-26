@@ -252,15 +252,12 @@ public class DBService {
                 old[2] = res.getInt(3);
 
             }
-            System.out.println("INSERT INTO `StudentGroupHistory` (GroupID,StudentID,Status) VALUES (" + old[0] + ","
-                    + old[1] + "," + old[2] + ")");
 
             stmt = sql.prepareStatement("INSERT INTO `StudentGroupHistory` (GroupID,StudentID,Status) VALUES (" + old[0]
                     + "," + old[1] + "," + old[2] + ")");
 
             stmt.executeUpdate();
 
-            System.out.println("2");
             stmt = sql.prepareStatement("UPDATE `StudentGroup` SET `Status`= ? WHERE `StudentID` = ?");
 
             stmt.setInt(1, s.status);

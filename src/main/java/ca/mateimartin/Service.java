@@ -80,4 +80,18 @@ public class Service {
 
     }
 
+    public static List<SearchResponse> search(UUID token , String id) {
+        List<SearchResponse> output = new ArrayList<>();
+
+        int empID = DBService.getUserByToken(token);
+        if (empID == 0) {
+            output.add(new SearchResponse(null, new Group(-1, "InvalidatedToken")));
+            return output;
+        }
+
+        output = DBService.search(id);
+
+        return output;
+    }
+
 }

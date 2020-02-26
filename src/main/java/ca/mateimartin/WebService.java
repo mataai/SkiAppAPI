@@ -29,15 +29,17 @@ public class WebService {
     @GET
     @Path("/levels")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String getLevels() throws InterruptedException {
-        return gson.toJson(DBService.getLevels());
+    public static Response getLevels() throws InterruptedException {
+        return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8")
+                .entity(DBService.getLevels()).build();
     }
 
     @GET
     @Path("/levels/{id}/exercices")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String ExercicesByLevel(@PathParam("id") final int id) throws InterruptedException {
-        return gson.toJson(DBService.getExercicesByLevel(id));
+    public static Response ExercicesByLevel(@PathParam("id") final int id) throws InterruptedException {
+        return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8")
+                .entity(DBService.getExercicesByLevel(id)).build();
     }
 
     @GET
@@ -108,24 +110,55 @@ public class WebService {
     @GET
     @Path("/upgrade/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String getUpgrade(@HeaderParam("UserToken") final String token, @PathParam("id") final int id)
+    public static Response getUpgrade(@HeaderParam("UserToken") final String token, @PathParam("id") final int id)
             throws InterruptedException {
-        return gson.toJson("yo");
+        return Response.status(Response.Status.NOT_IMPLEMENTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8")
+                .entity("NotImplemented").build();
     }
 
     @GET
     @Path("/downgrade/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String getDowngrade(@HeaderParam("UserToken") final String token, @PathParam("id") final int id)
+    public static Response getDowngrade(@HeaderParam("UserToken") final String token, @PathParam("id") final int id)
             throws InterruptedException {
-        return gson.toJson("YO");
+        return Response.status(Response.Status.NOT_IMPLEMENTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8")
+                .entity("NotImplemented").build();
     }
 
     @GET
     @Path("/search/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public static String search(@PathParam("id") final String id) throws InterruptedException {
-        return gson.toJson(DBService.search(id));
+    public static Response search(@HeaderParam("UserToken") final String token, @PathParam("id") final String id)
+            throws InterruptedException {
+        UUID okToken;
+        if (token == null || token == "" || token.length() != 36) {
+            final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8").entity("InvalidToken").build();
+            return res;
+        }
+        try {
+            okToken = UUID.fromString(token);
+        } catch (Exception e) {
+            final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8").entity("InvalidToken").build();
+            return res;
+        }
+
+        List<SearchResponse> out = Service.search(okToken, id);
+
+        if (out.size() < 1) {
+            final Response res = Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8").entity("EmptyDataseta").build();
+            return res;
+        } else if (out.size() == 1 && out.get(0).group.id == -1) {
+            final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8").entity(out.get(0).group.Number).build();
+            return res;
+        }
+
+        return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity(out)
+                .build();
+
     }
 
     // endregion
@@ -135,7 +168,6 @@ public class WebService {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateStatusOld(@HeaderParam("UserToken") final String token, final StatusDTO s)
             throws InterruptedException {
-        Thread.sleep(2000);
         if (s == null) {
             final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
             final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidObject")
