@@ -71,12 +71,12 @@ public class Service {
 
         List<Group> output = new ArrayList<>();
         int empID = DBService.getUserByToken(token);
-        if (empID == 0){
-            output.add(new Group(-1,"InvalidatedToken"));
+        if (empID == 0) {
+            output.add(new Group(-1, "InvalidatedToken"));
             return output;
         }
 
-        return DBService.getGroupsByLevel(id,empID);
+        return DBService.getGroupsByLevel(id, empID);
 
     }
 

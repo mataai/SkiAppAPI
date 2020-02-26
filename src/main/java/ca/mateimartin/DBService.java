@@ -129,17 +129,15 @@ public class DBService {
         Group output = null;
         try {
             sql = connect();
-            PreparedStatement req = sql.prepareStatement("SELECT * FROM `Groups` WHERE GroupID = ?");
-            req.setInt(1, id);
-            ResultSet res = req.executeQuery();
+            Statement req = sql.createStatement();
+            ResultSet res = req.executeQuery("SELECT * FROM `Groups` WHERE GroupID = " + id + ";");
             while (res.next()) {
                 Group tempGroup = new Group(res.getInt(1), res.getString(3), res.getString(2), res.getString(4),
                         res.getInt(5), res.getString(6));
                 try {
                     sql = connect();
-                    PreparedStatement req2 = sql.prepareStatement("SELECT * FROM VW_Inscription where GroupID = ?");
-                    req.setInt(1, id);
-                    ResultSet res2 = req2.executeQuery();
+                    Statement req2 = sql.createStatement();
+                    ResultSet res2 = req2.executeQuery("SELECT * FROM VW_Inscription where GroupID = " + id + ";");
                     while (res2.next()) {
 
                         tempGroup.Students.add(new Student(res2.getInt(2), res2.getString(3) + " " + res2.getString(4),
@@ -166,9 +164,8 @@ public class DBService {
         Group output = null;
         try {
             sql = connect();
-            PreparedStatement req = sql.prepareStatement("SELECT * FROM `Groups` WHERE GroupID = ?");
-            req.setInt(1, id);
-            ResultSet res = req.executeQuery();
+            Statement req = sql.createStatement();
+            ResultSet res = req.executeQuery("SELECT * FROM `Groups` WHERE GroupID = " + id + ";");
             while (res.next()) {
                 Group tempGroup = new Group(res.getInt(1), res.getString(3), res.getString(2), res.getString(4),
                         res.getInt(5), res.getString(6));
@@ -200,9 +197,8 @@ public class DBService {
         List<Exercice> output = new ArrayList<>();
         try {
             sql = connect();
-            PreparedStatement req = sql.prepareStatement("SELECT * FROM `Exercices` WHERE `LevelID` = ?");
-            req.setInt(1, id);
-            ResultSet res = req.executeQuery();
+            Statement req = sql.createStatement();
+            ResultSet res = req.executeQuery("SELECT * FROM `Exercices` WHERE `LevelID` = " + id + ";");
             while (res.next()) {
                 Exercice tempClasse = new Exercice(res.getInt(1), res.getString(2), res.getString(3), res.getInt(4));
                 output.add(tempClasse);
@@ -216,14 +212,17 @@ public class DBService {
         return output;
     }
 
+    public static JsonElement getStudentsByLevel(int id) {
+        return null;
+    }
+
     public static List<Group> getDowngrade(int studentID) {
         Connection sql = null;
         List<Group> output = new ArrayList<>();
         try {
             sql = connect();
-            PreparedStatement req = sql.prepareStatement("SELECT * FROM `Groups` WHERE GroupID = ?");
-            req.setInt(1, studentID);
-            ResultSet res = req.executeQuery();
+            Statement req = sql.createStatement();
+            ResultSet res = req.executeQuery("SELECT * FROM `Groups` WHERE GroupID = " + studentID + ";");
             while (res.next()) {
                 Group tempClasse = new Group(res.getInt(1), res.getString(3), res.getString(2), res.getString(4),
                         res.getInt(5), res.getString(6));
@@ -245,21 +244,23 @@ public class DBService {
         try {
 
             sql = connect();
-            PreparedStatement req = sql.prepareStatement("SELECT * FROM `StudentGroup` WHERE StudentID = ?");
-            req.setInt(1, s.studentID);
-            ResultSet res = req.executeQuery();
+            Statement req = sql.createStatement();
+            ResultSet res = req.executeQuery("SELECT * FROM `StudentGroup` WHERE StudentID = " + s.studentID + ";");
             while (res.next()) {
                 old[0] = res.getInt(1);
                 old[1] = res.getInt(2);
                 old[2] = res.getInt(3);
 
             }
+            System.out.println("INSERT INTO `StudentGroupHistory` (GroupID,StudentID,Status) VALUES (" + old[0] + ","
+                    + old[1] + "," + old[2] + ")");
 
             stmt = sql.prepareStatement("INSERT INTO `StudentGroupHistory` (GroupID,StudentID,Status) VALUES (" + old[0]
                     + "," + old[1] + "," + old[2] + ")");
 
             stmt.executeUpdate();
 
+            System.out.println("2");
             stmt = sql.prepareStatement("UPDATE `StudentGroup` SET `Status`= ? WHERE `StudentID` = ?");
 
             stmt.setInt(1, s.status);
@@ -281,20 +282,17 @@ public class DBService {
         Connection sql = null;
         try {
             sql = connect();
-            PreparedStatement req;
+            Statement req = sql.createStatement();
+            ResultSet res;
             if (input.length == 2) {
-                req = sql.prepareStatement(
-                        "SELECT * FROM `VW_Inscription` WHERE `Name` LIKE  OR `FirstName` LIKE ? OR `Name` LIKE ? OR `FirstName` LIKE ? ");
-                req.setString(1, input[0] + "%");
-                req.setString(4, input[0] + "%");
-                req.setString(2, input[1] + "%");
-                req.setString(3, input[1] + "%");
+                res = req.executeQuery("SELECT * FROM `VW_Inscription` WHERE `Name` LIKE '" + input[0]
+                        + "%' OR `FirstName` LIKE '" + input[1] + "%' OR `Name` LIKE '" + input[1]
+                        + "%' OR `FirstName` LIKE '" + input[0] + "%' ");
             } else {
-                req = sql.prepareStatement("SELECT * FROM `VW_Inscription` WHERE `Name` LIKE ? OR `FirstName` LIKE ?");
-                req.setString(1, input[0] + "%");
-                req.setString(2, input[0] + "%");
+                res = req.executeQuery("SELECT * FROM `VW_Inscription` WHERE `Name` LIKE '" + input[0]
+                        + "%' OR `FirstName` LIKE '" + input[0] + "%'");
             }
-            ResultSet res = req.executeQuery();
+            req.toString();
             while (res.next()) {
                 out.add(new SearchResponse(
                         new Student(res.getInt(1), res.getString(2) + " " + res.getString(3), res.getInt(4)),
@@ -330,7 +328,6 @@ public class DBService {
     }
 
     public static int getPerm(int empID, int groupID) {
-        Integer out = 1000;
         Connection sql = null;
         try {
             sql = connect();
@@ -340,7 +337,7 @@ public class DBService {
             req.setInt(2, empID);
             ResultSet res = req.executeQuery();
             while (res.next()) {
-                out = res.getInt(1);
+                return res.getInt(1);
             }
             res.close();
         } catch (Exception e) {
@@ -348,7 +345,8 @@ public class DBService {
             System.out.println(e.getMessage());
             return 1000;
         }
-        return out;
+        return 1000;
+
     }
 
     public static Employe getPerms(Employe emp) {
