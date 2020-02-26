@@ -39,7 +39,6 @@ public class Service {
         }
         Employe emp = DBService.getEmploye(empID);
         emp = DBService.getPerms(emp);
-        boolean admin = false;
         if (emp.permissions.containsValue(0) || Service.hasGroupPerms(emp, groupID, 'R')) {
             return DBService.getGroup(groupID);
         }
