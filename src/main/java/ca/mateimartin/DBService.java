@@ -383,6 +383,7 @@ public class DBService {
         }
 
         closeDB(sql);
+        System.out.println("sql out");
         return out;
     }
 

@@ -52,18 +52,20 @@ public class WebService {
                             .encoding("UTF-8").entity("InvalidToken").build();
                     return res;
                 }
-        
+        System.out.println("55");
                 List<Group> output = Service.getGroupsByLevel(id, UUID.fromString(token));
-        
+                System.out.println("output size");
+                System.out.println(output.size());
                 if (output.size() < 1) {
                     final Response res = Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON)
                             .encoding("UTF-8").entity(output).build();
                     return res;
                 }
-        
-                if (output.get(1).id == -1) {
+                System.out.println("57");
+                
+                if (output.get(0).id == -1) {
                     final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
-                            .encoding("UTF-8").entity(output.get(1)).build();
+                            .encoding("UTF-8").entity(output.get(0)).build();
                     return res;
                 }
                 return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8")
