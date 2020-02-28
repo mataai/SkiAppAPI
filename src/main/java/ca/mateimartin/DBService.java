@@ -253,7 +253,7 @@ public class DBService {
 
             }
 
-            stmt = sql.prepareStatement("INSERT INTO `StudentGroupHistory` (GroupID,StudentID,Status) VALUES (" + old[0]
+            stmt = sql.prepareStatement("INSERT INTO `StudentGroupHistoryOld` (GroupID,StudentID,Status) VALUES (" + old[0]
                     + "," + old[1] + "," + old[2] + ")");
 
             stmt.executeUpdate();

@@ -31,7 +31,7 @@ public class WebService {
     @Produces(MediaType.APPLICATION_JSON)
     public static Response getLevels() throws InterruptedException {
         return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8")
-                .entity(DBService.getLevels()).build();
+                .entity(DBService.getLevels())  .build();
     }
 
     @GET
@@ -47,7 +47,27 @@ public class WebService {
     @Produces(MediaType.APPLICATION_JSON)
     public static Response Groups(@HeaderParam("UserToken") final String token, @PathParam("id") final int id)
             throws InterruptedException {
-        return GroupsByLevel(token, id);
+                if (token == null || token == "" || token.length() != 36) {
+                    final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
+                            .encoding("UTF-8").entity("InvalidToken").build();
+                    return res;
+                }
+        
+                List<Group> output = Service.getGroupsByLevel(id, UUID.fromString(token));
+        
+                if (output.size() < 1) {
+                    final Response res = Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON)
+                            .encoding("UTF-8").entity(output).build();
+                    return res;
+                }
+        
+                if (output.get(1).id == -1) {
+                    final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
+                            .encoding("UTF-8").entity(output.get(1)).build();
+                    return res;
+                }
+                return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8")
+                        .entity(output).build();
     }
 
     @GET
@@ -97,7 +117,9 @@ public class WebService {
                     .encoding("UTF-8").entity("InvalidToken").build();
             return res;
         }
+        System.out.println(token);
         Group out = Service.getGroup(id, UUID.fromString(token));
+        System.out.println(out);
         if (out.id == -1) {
             final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
                     .encoding("UTF-8").entity(out.Number).build();
@@ -168,6 +190,12 @@ public class WebService {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateStatusOld(@HeaderParam("UserToken") final String token, final StatusDTO s)
             throws InterruptedException {
+        if (token == null || token == "") {
+            final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidToken")
+                    .build();
+            return res;
+        }
         if (s == null) {
             final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
             final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidObject")
@@ -192,13 +220,13 @@ public class WebService {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateStatus(@HeaderParam("UserToken") final String token, final StatusDTO s)
             throws InterruptedException {
-        Thread.sleep(2000);
         if (s == null) {
             final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
             final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidObject")
                     .build();
             return res;
         }
+        System.out.println(s);
         final boolean lr = DBService.updateStatus(s);
 
         if (lr) {
