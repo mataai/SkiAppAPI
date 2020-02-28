@@ -49,7 +49,7 @@ public class WebService {
             throws InterruptedException {
                 if (token == null || token == "" || token.length() != 36) {
                     final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
-                            .encoding("UTF-8").entity("InvalidToken").build();
+                            .encoding("UTF-8").entity("{ error : 'InvalidToken' }").build();
                     return res;
                 }
         System.out.println("55");
@@ -63,9 +63,10 @@ public class WebService {
                 }
                 System.out.println("57");
                 
+                
                 if (output.get(0).id == -1) {
                     final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
-                            .encoding("UTF-8").entity(output.get(0)).build();
+                            .encoding("UTF-8").entity("{ error : "+output.get(0)+" }").build();
                     return res;
                 }
                 return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8")
@@ -79,7 +80,7 @@ public class WebService {
             throws InterruptedException {
         if (token == null || token == "" || token.length() != 36) {
             final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
-                    .encoding("UTF-8").entity("InvalidToken").build();
+                    .encoding("UTF-8").entity("{InvalidToken}").build();
             return res;
         }
 
