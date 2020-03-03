@@ -334,7 +334,7 @@ public class DBService {
             req.setInt(2, empID);
             ResultSet res = req.executeQuery();
             while (res.next()) {
-                return res.getInt(1);
+                return res.getInt(2);
             }
             res.close();
         } catch (Exception e) {
