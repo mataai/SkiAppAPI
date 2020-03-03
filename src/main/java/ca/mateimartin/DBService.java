@@ -78,17 +78,17 @@ public class DBService {
         List<Group> output = new ArrayList<>();
         try {
             sql = connect();
-            PreparedStatement req = sql
-                    .prepareStatement("SELECT * FROM `VW_Permissions` WHERE LevelID = ? AND EmployeID = ?");
+            PreparedStatement req = sql.prepareStatement(
+                    "SELECT * FROM `VW_Permissions` WHERE LevelID = ? AND EmployeID = ? AND permission <= ?");
             req.setInt(1, id);
             req.setInt(2, empID);
+            req.setInt(3, 100);
             ResultSet res = req.executeQuery();
             while (res.next()) {
-                if (res.getInt(2) <= 10) {
-                    Group tempGroup = new Group(res.getInt(3), res.getString(5), res.getString(4), res.getString(6),
-                            res.getInt(7), res.getString(8));
-                    output.add(tempGroup);
-                }
+                Group tempGroup = new Group(res.getInt(3), res.getString(5), res.getString(4), res.getString(6),
+                        res.getInt(7), res.getString(8));
+                output.add(tempGroup);
+
             }
 
         } catch (Exception e) {
@@ -253,8 +253,8 @@ public class DBService {
 
             }
 
-            stmt = sql.prepareStatement("INSERT INTO `StudentGroupHistoryOld` (GroupID,StudentID,Status) VALUES (" + old[0]
-                    + "," + old[1] + "," + old[2] + ")");
+            stmt = sql.prepareStatement("INSERT INTO `StudentGroupHistoryOld` (GroupID,StudentID,Status) VALUES ("
+                    + old[0] + "," + old[1] + "," + old[2] + ")");
 
             stmt.executeUpdate();
 
@@ -383,7 +383,6 @@ public class DBService {
         }
 
         closeDB(sql);
-        System.out.println("sql out");
         return out;
     }
 

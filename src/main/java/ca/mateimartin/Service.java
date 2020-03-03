@@ -55,14 +55,13 @@ public class Service {
 
         if (perm == 0) {
             return true;
-        } else if (perm > 100) {
-            return false;
         } else if (action == 'R' && perm < 100) {
             return true;
         } else if (action == 'W' && perm < 10) {
             return true;
         }
 
+        System.out.println("false");
         return false;
     }
 
