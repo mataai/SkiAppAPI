@@ -2,14 +2,14 @@ package ca.mateimartin.dto;
 
 public class LoginRequest{
 
-    public int code;
+    public String code;
     public String ip;
 
-    public LoginRequest(int code){
+    public LoginRequest(String code){
         this.code = code;
     }
 
-    public LoginRequest(int code,String ip){
+    public LoginRequest(String code,String ip){
         this.code = code;
         this.ip = ip;
     }

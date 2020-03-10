@@ -31,7 +31,7 @@ public class WebService {
     @Produces(MediaType.APPLICATION_JSON)
     public static Response getLevels() throws InterruptedException {
         return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8")
-                .entity(DBService.getLevels())  .build();
+                .entity(DBService.getLevels()).build();
     }
 
     @GET
@@ -47,30 +47,29 @@ public class WebService {
     @Produces(MediaType.APPLICATION_JSON)
     public static Response Groups(@HeaderParam("UserToken") final String token, @PathParam("id") final int id)
             throws InterruptedException {
-                if (token == null || token == "" || token.length() != 36) {
-                    final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
-                            .encoding("UTF-8").entity("{ error : 'InvalidToken' }").build();
-                    return res;
-                }
+        if (token == null || token == "" || token.length() != 36) {
+            final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8").entity("InvalidToken").build();
+            return res;
+        }
         System.out.println("55");
-                List<Group> output = Service.getGroupsByLevel(id, UUID.fromString(token));
-                System.out.println("output size");
-                System.out.println(output.size());
-                if (output.size() < 1) {
-                    final Response res = Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON)
-                            .encoding("UTF-8").entity(output).build();
-                    return res;
-                }
-                System.out.println("57");
-                
-                
-                if (output.get(0).id == -1) {
-                    final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
-                            .encoding("UTF-8").entity("{ error : "+output.get(0)+" }").build();
-                    return res;
-                }
-                return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8")
-                        .entity(output).build();
+        List<Group> output = Service.getGroupsByLevel(id, UUID.fromString(token));
+        System.out.println("output size");
+        System.out.println(output.size());
+        if (output.size() < 1) {
+            final Response res = Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8").entity(output).build();
+            return res;
+        }
+        System.out.println("57");
+
+        if (output.get(0).id == -1) {
+            final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
+                    .encoding("UTF-8").entity("{ error : " + output.get(0) + " }").build();
+            return res;
+        }
+        return Response.status(Response.Status.ACCEPTED).type(MediaType.APPLICATION_JSON).encoding("UTF-8")
+                .entity(output).build();
     }
 
     @GET
@@ -80,7 +79,7 @@ public class WebService {
             throws InterruptedException {
         if (token == null || token == "" || token.length() != 36) {
             final Response res = Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
-                    .encoding("UTF-8").entity("{InvalidToken}").build();
+                    .encoding("UTF-8").entity("InvalidToken").build();
             return res;
         }
 
@@ -195,21 +194,22 @@ public class WebService {
             throws InterruptedException {
         if (token == null || token == "") {
             final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidToken")
-                    .build();
+            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8")
+                    .entity("InvalidToken").build();
             return res;
         }
         if (s == null) {
             final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidObject")
-                    .build();
+            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8")
+                    .entity("InvalidObject").build();
             return res;
         }
         final boolean lr = DBService.updateStatus(s);
 
         if (lr) {
             final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
+            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8")
+                    .entity("SQLError").build();
             return res;
         }
 
@@ -223,10 +223,16 @@ public class WebService {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateStatus(@HeaderParam("UserToken") final String token, final StatusDTO s)
             throws InterruptedException {
+        if (token == null || token == "") {
+            final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8")
+                    .entity("InvalidToken").build();
+            return res;
+        }
         if (s == null) {
             final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidObject")
-                    .build();
+            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8")
+                    .entity("InvalidObject").build();
             return res;
         }
         System.out.println(s);
@@ -247,16 +253,23 @@ public class WebService {
     @Path("/login")
     @Produces(MediaType.APPLICATION_JSON)
     public Response login(final LoginRequest s) throws InterruptedException {
-
         try {
             if (s == null) {
                 final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-                final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("Invalid Login")
+                final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidLogin")
                         .build();
                 return res;
             }
-
-            final Employe emp = DBService.getEmploye(s.code);
+            try {
+                Integer.parseInt(s.code);
+            } catch (Exception e) {
+                //TODO: handle exception
+                final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+                final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InvalidLogin")
+                        .build();
+                return res;
+            }
+            final Employe emp = DBService.getEmploye(Integer.parseInt(s.code));
             if (emp == null) {
                 final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
                 final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("InexistentUser")
