@@ -85,8 +85,8 @@ public class Service {
         }
         boolean perm = hasGroupPerms(emp, s.groupID, 'w');
         if (perm){
-            boolean sqlResp = DBService.updateStatus(s, emp.id);
-            if (sqlResp){
+            boolean sqlerror = DBService.updateStatus(s, emp.id);
+            if (!sqlerror){
                 return "Ok";
             }
             else {
