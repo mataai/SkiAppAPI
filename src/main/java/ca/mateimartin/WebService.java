@@ -198,18 +198,27 @@ public class WebService {
                     .entity("InvalidToken").build();
             return res;
         }
+        try {
+            UUID.fromString(token);
+        } catch (Exception e) {
+            final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
+            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8")
+                    .entity("InvalidToken").build();
+            return res;
+        }
+
         if (s == null) {
             final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
             final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8")
                     .entity("InvalidObject").build();
             return res;
         }
-        final boolean lr = DBService.updateStatus(s);
+        final String lr = Service.updateStatus(s,UUID.fromString(token));
 
-        if (lr) {
+        if (lr != "Ok") {
             final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
             final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8")
-                    .entity("SQLError").build();
+                    .entity(lr).build();
             return res;
         }
 
@@ -235,12 +244,11 @@ public class WebService {
                     .entity("InvalidObject").build();
             return res;
         }
-        System.out.println(s);
-        final boolean lr = DBService.updateStatus(s);
+        final String lr = Service.updateStatus(s,UUID.fromString(token));
 
-        if (lr) {
+        if (lr != "Ok") {
             final Response.ResponseBuilder rBuild = Response.status(Response.Status.BAD_REQUEST);
-            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity("SQLError").build();
+            final Response res = rBuild.type(MediaType.APPLICATION_JSON).encoding("UTF-8").entity(lr).build();
             return res;
         }
 

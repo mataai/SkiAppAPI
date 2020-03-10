@@ -212,10 +212,6 @@ public class DBService {
         return output;
     }
 
-    public static JsonElement getStudentsByLevel(int id) {
-        return null;
-    }
-
     public static List<Group> getDowngrade(int studentID) {
         Connection sql = null;
         List<Group> output = new ArrayList<>();
@@ -235,12 +231,12 @@ public class DBService {
         return output;
     }
 
-    public static boolean updateStatus(StatusDTO s) {
+    public static boolean updateStatus(StatusDTO s,int empID) {
 
         Connection sql = null;
         PreparedStatement stmt = null;
         boolean output = false;
-        int[] old = new int[3]; // GroupID StudentID Status
+        int[] old = new int[4]; // GroupID StudentID Status
         try {
 
             sql = connect();
@@ -250,12 +246,17 @@ public class DBService {
                 old[0] = res.getInt(1);
                 old[1] = res.getInt(2);
                 old[2] = res.getInt(3);
+                old[3] = res.getInt(4);
 
             }
 
-            stmt = sql.prepareStatement("INSERT INTO `StudentGroupHistoryOld` (GroupID,StudentID,Status) VALUES ("
-                    + old[0] + "," + old[1] + "," + old[2] + ")");
-
+            stmt = sql.prepareStatement("INSERT INTO `StudentGroupHistory`(`OldGroup`, `NewGroup`,`OldStatus`, `NewStatus`, `EmployeID`, `ClientID`) VALUES (?,?,?,?,?,?)");
+            stmt.setInt(1, old[0]);
+            stmt.setInt(2, old[0]);
+            stmt.setInt(3, old[2]);
+            stmt.setInt(4, s.status);
+            stmt.setInt(5, empID);
+            stmt.setInt(6, old[1]);
             stmt.executeUpdate();
 
             stmt = sql.prepareStatement("UPDATE `StudentGroup` SET `Status`= ? WHERE `StudentID` = ?");
@@ -322,6 +323,11 @@ public class DBService {
         closeDB(sql);
 
         return output;
+    }
+
+    public static Employe getEmploye(UUID token) {
+        int id = getUserByToken(token);
+        return getEmploye(id);
     }
 
     public static int getPerm(int empID, int groupID) {

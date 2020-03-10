@@ -25,8 +25,9 @@ public class Service {
         }
 
         if (DBService.deleteToken(token)) {
-            return "Good";
+            return "Ok";
         }
+
         return "SQLError";
 
     }
@@ -61,7 +62,6 @@ public class Service {
             return true;
         }
 
-        System.out.println("false");
         return false;
     }
 
@@ -76,6 +76,24 @@ public class Service {
 
         return DBService.getGroupsByLevel(id, empID);
 
+    }
+
+    public static String updateStatus(StatusDTO s, UUID token) {
+        Employe emp = DBService.getEmploye(token);
+        if (emp == null) {
+            return "InvalidatedToken";
+        }
+        boolean perm = hasGroupPerms(emp, s.groupID, 'w');
+        if (perm){
+            boolean sqlResp = DBService.updateStatus(s, emp.id);
+            if (sqlResp){
+                return "Ok";
+            }
+            else {
+                return "SQLError";
+            }
+        }
+        return "NotAuthorized";
     }
 
     public static List<SearchResponse> search(UUID token , String id) {
